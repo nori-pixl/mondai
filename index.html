@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nameBy nori-pixl　|　問題ゲーム</title>
+<style>
+  :root{
+    --bg:#fdf6e3;
+    --card:#ffffff;
+    --accent:#ff8c42;
+    --accent-dark:#e06b1f;
+    --blue:#4a90d9;
+    --blue-dark:#3a75b0;
+    --green:#3cb371;
+    --red:#e15252;
+    --purple:#8a63d2;
+    --text:#3a3a3a;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+    background:linear-gradient(135deg,#fdf6e3,#eaf6ff);
+    color:var(--text);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+    color:#fff;
+    padding:12px 16px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.15);
+  }
+  .header-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .title{
+    font-size:1.2rem;
+    font-weight:bold;
+  }
+  .money-display{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(255,255,255,0.25);
+    padding:6px 12px;
+    border-radius:20px;
+    font-weight:bold;
+    font-size:1.05rem;
+    transition:transform .15s;
+  }
+  .money-display.bump{
+    animation:moneyBump .3s ease;
+  }
+  @keyframes moneyBump{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.15);}
+    100%{transform:scale(1);}
+  }
+  .income-note{
+    font-size:0.75rem;
+    opacity:0.9;
+    margin-top:2px;
+    text-align:right;
+  }
+  nav.tabs{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  nav.tabs button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:12px;
+    background:rgba(255,255,255,0.2);
+    color:#fff;
+    font-weight:bold;
+    font-size:0.95rem;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  nav.tabs button.active{
+    background:#fff;
+    color:var(--accent-dark);
+  }
+
+  .container{
+    max-width:560px;
+    margin:0 auto;
+    padding:16px 12px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:0 4px 14px rgba(0,0,0,0.08);
+    padding:20px;
+    margin-bottom:18px;
+    animation:cardIn .35s ease;
+  }
+  @keyframes cardIn{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .section-title{
+    font-weight:bold;
+    color:var(--accent-dark);
+    margin-bottom:10px;
+    font-size:1.05rem;
+  }
+
+  .choice-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+  .choice-btn{
+    padding:14px 6px;
+    border:2px solid #eee;
+    border-radius:12px;
+    background:#fff;
+    font-size:0.95rem;
+    font-weight:bold;
+    cursor:pointer;
+    transition:all .15s;
+    color:var(--text);
+  }
+  .choice-btn:hover{border-color:var(--accent); transform:translateY(-2px);}
+  .choice-btn.selected{
+    background:var(--accent);
+    border-color:var(--accent-dark);
+    color:#fff;
+  }
+  .subject-grid{grid-template-columns:repeat(2,1fr);}
+  .grade-grid{grid-template-columns:repeat(3,1fr);}
+  .diff-grid{grid-template-columns:repeat(3,1fr);}
+  .diff-btn.selected.d1{background:var(--green); border-color:#2a8c58;}
+  .diff-btn.selected.d2{background:var(--blue); border-color:var(--blue-dark);}
+  .diff-btn.selected.d3{background:var(--red); border-color:#b53a3a;}
+
+  button.main-btn{
+    width:100%;
+    padding:14px;
+    font-size:1.1rem;
+    font-weight:bold;
+    border:none;
+    border-radius:12px;
+    background:var(--blue);
+    color:#fff;
+    cursor:pointer;
+    margin-top:14px;
+    transition:transform .1s;
+  }
+  button.main-btn:active{transform:scale(0.97);}
+  button.main-btn:disabled{background:#ccc;cursor:not-allowed;}
+  button.next-btn{background:var(--green);}
+  button.sub-btn{
+    width:100%;
+    padding:10px;
+    font-size:0.95rem;
+    font-weight:bold;
+    border:none;
+    border-radius:10px;
+    background:#eee;
+    color:var(--text);
+    cursor:pointer;
+    margin-top:8px;
+  }
+
+  .progress-line{
+    text-align:center;
+    color:#999;
+    font-size:0.9rem;
+    margin-bottom:6px;
+  }
+  .progress-bar-outer{
+    background:#eee;
+    border-radius:8px;
+    height:8px;
+    overflow:hidden;
+    margin-bottom:16px;
+  }
+  .progress-bar-inner{
+    background:var(--accent);
+    height:100%;
+    transition:width .3s;
+  }
+  .problem-wrap{
+    animation:fadeSlide .35s ease;
+  }
+  @keyframes fadeSlide{
+    from{opacity:0; transform:translateX(16px);}
+    to{opacity:1; transform:translateX(0);}
+  }
+  .problem-text{
+    text-align:center;
+    font-size:1.35rem;
+    font-weight:700;
+    margin:16px 0;
+    line-height:1.5;
+  }
+  .answer-row{
+    display:flex;
+    justify-content:center;
+    margin-bottom:16px;
+  }
+  .answer-input{
+    width:160px;
+    padding:12px;
+    font-size:1.2rem;
+    border:2px solid #ddd;
+    border-radius:10px;
+    text-align:center;
+  }
+  .answer-input.correct{border-color:var(--green); background:#eafff0; animation:pop .3s;}
+  .answer-input.wrong{border-color:var(--red); background:#fff0f0; animation:shake .4s;}
+  @keyframes pop{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.08);}
+    100%{transform:scale(1);}
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-8px);}
+    40%{transform:translateX(8px);}
+    60%{transform:translateX(-6px);}
+    80%{transform:translateX(6px);}
+  }
+
+  .mc-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .mc-btn{
+    padding:12px 8px;
+    border:2px solid #ddd;
+    border-radius:10px;
+    background:#fff;
+    font-size:0.95rem;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .mc-btn:hover{border-color:var(--accent);}
+  .mc-btn.correct{background:#eafff0; border-color:var(--green); animation:pop .3s;}
+  .mc-btn.wrong{background:#fff0f0; border-color:var(--red); animation:shake .4s;}
+  .mc-btn:disabled{cursor:default;}
+
+  .feedback{
+    text-align:center;
+    font-size:1.15rem;
+    font-weight:bold;
+    min-height:1.6em;
+    margin-bottom:4px;
+  }
+  .feedback-good{color:var(--green);}
+  .feedback-bad{color:var(--red);}
+  .explain-box{
+    background:#fff8ec;
+    border:1px solid #ffe0b3;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:0.9rem;
+    color:#7a5b2e;
+    margin-bottom:10px;
+    line-height:1.6;
+    animation:fadeSlide .3s ease;
+  }
+  .explain-box b{color:var(--accent-dark);}
+
+  .coin-float{
+    position:relative;
+    text-align:center;
+    height:0;
+  }
+  .coin-pop{
+    position:absolute;
+    left:50%;
+    top:0;
+    transform:translateX(-50%);
+    font-weight:bold;
+    color:var(--green);
+    font-size:1.1rem;
+    animation:coinFloat 1s ease forwards;
+    pointer-events:none;
+  }
+  @keyframes coinFloat{
+    0%{opacity:0; transform:translate(-50%,0);}
+    20%{opacity:1;}
+    100%{opacity:0; transform:translate(-50%,-40px);}
+  }
+
+  .hidden{display:none;}
+
+  .result-box{
+    text-align:center;
+    font-size:1.4rem;
+    font-weight:bold;
+    margin-top:6px;
+    animation:pop .4s;
+  }
+  .result-good{color:var(--green);}
+  .result-bad{color:var(--red);}
+  .score-line{
+    text-align:center;
+    color:#888;
+    font-size:1rem;
+    margin-top:6px;
+  }
+  .earn-line{
+    text-align:center;
+    color:var(--accent-dark);
+    font-weight:bold;
+    font-size:1.1rem;
+    margin-top:10px;
+  }
+
+  /* town */
+  .town-cat-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .town-cat-tabs button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#f0f0f0;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:0.9rem;
+  }
+  .town-cat-tabs button.active{
+    background:var(--accent);
+    color:#fff;
+  }
+  .building-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .building-card{
+    border:2px solid #eee;
+    border-radius:14px;
+    padding:12px;
+    text-align:center;
+    background:#fff;
+    transition:all .15s;
+  }
+  .building-card.locked{
+    opacity:0.45;
+  }
+  .building-card.affordable{
+    border-color:var(--green);
+  }
+  .b-icon{
+    width:56px;
+    height:56px;
+    margin:0 auto 8px;
+    position:relative;
+  }
+  .b-icon .body{
+    position:absolute;
+    bottom:0; left:8px; right:8px;
+    border-radius:3px;
+  }
+  .b-icon .roof{
+    position:absolute;
+    top:0; left:0; right:0;
+    width:0; height:0;
+    margin:0 auto;
+  }
+  .b-icon .window{
+    position:absolute;
+    background:#fffde0;
+    border-radius:2px;
+  }
+  .b-icon .chimney{
+    position:absolute;
+    top:-6px; right:14px;
+    width:8px; height:14px;
+    background:#888;
+  }
+  .b-name{
+    font-size:0.85rem;
+    font-weight:bold;
+    margin-bottom:4px;
+  }
+  .b-cost{
+    font-size:0.8rem;
+    color:#888;
+    margin-bottom:2px;
+  }
+  .b-income{
+    font-size:0.75rem;
+    color:var(--green);
+    margin-bottom:6px;
+  }
+  .b-owned{
+    font-size:0.75rem;
+    color:var(--blue-dark);
+    margin-bottom:6px;
+  }
+  .b-lock-note{
+    font-size:0.72rem;
+    color:#aa6;
+    margin-bottom:6px;
+  }
+  .buy-btn{
+    width:100%;
+    padding:8px;
+    border:none;
+    border-radius:8px;
+    background:var(--blue);
+    color:#fff;
+    font-weight:bold;
+    font-size:0.85rem;
+    cursor:pointer;
+  }
+  .buy-btn:disabled{background:#ccc; cursor:not-allowed;}
+  .buy-btn.just-bought{animation:pop .4s;}
+
+  .town-view{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    padding:10px;
+    background:#e8f6e0;
+    border-radius:12px;
+    min-height:60px;
+    margin-bottom:14px;
+  }
+  .town-view .mini-icon{
+    width:20px;
+    height:20px;
+    border-radius:3px;
+  }
+
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.9rem;
+    color:#777;
+    margin-bottom:4px;
+  }
+
+  .reset-btn{
+    width:100%;
+    padding:12px;
+    border:2px solid var(--red);
+    border-radius:12px;
+    background:#fff;
+    color:var(--red);
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(50,50,50,0.92);
+    color:#fff;
+    padding:12px 20px;
+    border-radius:20px;
+    font-size:0.9rem;
+    z-index:100;
+    animation:toastIn .3s ease, toastOut .3s ease 2.4s forwards;
+  }
+  @keyframes toastIn{from{opacity:0; transform:translate(-50%,10px);} to{opacity:1; transform:translate(-50%,0);}}
+  @keyframes toastOut{to{opacity:0;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="title">街作り問題ゲーム         nameBy nori-pixl　<br>開発バージョン ベータ1.0　2026/07/02 21:29 更新</div>
+    <div>
+      <div class="money-display" id="moneyDisplay">お金: 0円</div>
+      <div class="income-note" id="incomeNote"></div>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button id="tabStudyBtn" class="active">べんきょう</button>
+    <button id="tabTownBtn">まち</button>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- ============ STUDY: SETUP ============ -->
+  <div id="studySetup">
+    <div class="card">
+      <div class="section-title">教科を選ぶ</div>
+      <div class="choice-grid subject-grid" id="subjectSelect"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">学年</div>
+      <div class="choice-grid grade-grid" id="gradeSelect"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">難易度</div>
+      <div class="choice-grid diff-grid" id="diffSelect"></div>
+      <div class="unit-list" id="unitList" style="margin-top:10px;font-size:0.85rem;color:#777;"></div>
+      <button class="main-btn" id="genBtn">スタート</button>
+    </div>
+  </div>
+
+  <!-- ============ STUDY: QUIZ ============ -->
+  <div class="card hidden" id="problemCard">
+    <div class="progress-line" id="progressLine"></div>
+    <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+    <div class="problem-wrap" id="problemWrap">
+      <div class="problem-text" id="problemText"></div>
+      <div class="answer-row hidden" id="textAnswerRow">
+        <input type="text" class="answer-input" id="answerInput" autocomplete="off">
+      </div>
+      <div class="mc-grid hidden" id="mcGrid"></div>
+    </div>
+    <div class="coin-float" id="coinFloat"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="explain-box hidden" id="explainBox"></div>
+    <button class="main-btn" id="checkBtn">答え合わせ</button>
+    <button class="main-btn next-btn hidden" id="nextBtn">next</button>
+  </div>
+
+  <!-- ============ STUDY: FINISH ============ -->
+  <div class="card hidden" id="finishCard">
+    <div class="result-box" id="finalResult"></div>
+    <div class="score-line" id="finalScore"></div>
+    <div class="earn-line" id="finalEarn"></div>
+    <button class="main-btn" id="retryBtn">もう一回</button>
+    <button class="main-btn next-btn" id="goTownBtn">街に行く</button>
+  </div>
+
+  <!-- ============ TOWN ============ -->
+  <div id="townSection" class="hidden">
+    <div class="card">
+      <div class="section-title">my town</div>
+      <div class="town-view" id="townView"></div>
+      <div class="stat-row"><span>所持金</span><span id="townMoney">0円</span></div>
+      <div class="stat-row"><span>一秒ごとの収入</span><span id="townIncome">0円/s</span></div>
+      <div class="stat-row"><span>累計で稼いだお金</span><span id="townTotal">0円</span></div>
+    </div>
+    <div class="card">
+      <div class="town-cat-tabs" id="townCatTabs"></div>
+      <div class="building-grid" id="buildingGrid"></div>
+    </div>
+    <div class="card">
+      <button class="reset-btn" id="resetBtn">リセット</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   0. ユーティリティ
+   ============================================================ */
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function gcd(a,b){ return b === 0 ? a : gcd(b, a % b); }
+function reduceFraction(num, den){
+  const g = gcd(Math.abs(num), Math.abs(den)) || 1;
+  return { num: num / g, den: den / g };
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ============================================================
+   1. 算数もんだい生成 (難易度 1=かんたん 2=ふつう 3=むずかしい)
+   ============================================================ */
+function mathGrade1(diff){
+  const maxN = diff===1?5:(diff===2?9:20);
+  let a=randInt(1,maxN), b=randInt(1,maxN);
+  if(Math.random()<0.5){
+    return {text:`${a} + ${b} = ?`, answer:a+b, explain:`${a}と${b}をあわせると${a+b}になるよ。`};
+  } else {
+    if(a<b){const t=a;a=b;b=t;}
+    return {text:`${a} - ${b} = ?`, answer:a-b, explain:`${a}から${b}をひくと${a-b}になるよ。`};
+  }
+}
+function mathGrade2(diff){
+  const maxN = diff===1?30:(diff===2?99:300);
+  if(diff!==3 && Math.random()<0.5){
+    let a=randInt(10,maxN), b=randInt(10,maxN);
+    if(Math.random()<0.5){
+      return {text:`${a} + ${b} = ?`, answer:a+b, explain:`${a}と${b}を足すと${a+b}だよ。くらいをそろえて計算しよう。`};
+    } else {
+      if(a<b){const t=a;a=b;b=t;}
+      return {text:`${a} - ${b} = ?`, answer:a-b, explain:`${a}から${b}を引くと${a-b}だよ。`};
+    }
+  } else {
+    let a=randInt(1,9), b=randInt(1,9);
+    if(diff===3){ b = randInt(1,9); a = randInt(1,9); }
+    return {text:`${a} x ${b} = ?`, answer:a*b, explain:`${a}を${b}かいたすと${a*b}になるよ(九九だよ)。`};
+  }
+}
+function mathGrade3(diff){
+  const type = diff===1? randInt(0,1): randInt(0,2);
+  if(type===0){
+    const maxN = diff===1?300:(diff===2?999:3000);
+    let a=randInt(100,maxN), b=randInt(100,maxN);
+    if(Math.random()<0.5){
+      return {text:`${a} + ${b} = ?`, answer:a+b, explain:`位をそろえて足すと${a+b}です。`};
+    } else {
+      if(a<b){const t=a;a=b;b=t;}
+      return {text:`${a} - ${b} = ?`, answer:a-b, explain:`位をそろえて引く${a-b}です。`};
+    }
+  } else if(type===1){
+    let b=randInt(2,9), ans=randInt(2,9), a=b*ans;
+    return {text:`${a} ÷ ${b} = ?`, answer:ans, explain:`${a}を${b}個ずつに分けると${ans}個になります。。`};
+  } else {
+    let b=randInt(2,9), ans=randInt(2,9), amari=randInt(1,b-1), a=b*ans+amari;
+    return {text:`${a} ÷ ${b} = ? (例:3あまり2)`, answer:`${ans}あまり${amari}`, checkType:"string",
+      explain:`${a}を${b}個ずつ分けると${ans}個でき、${amari}です。`};
+  }
+}
+function mathGrade4(diff){
+  const type = diff===1? randInt(0,1): randInt(0,2);
+  if(type===0){
+    let b=randInt(2,9);
+    let ans = diff===1? randInt(2,20): (diff===2? randInt(11,99): randInt(50,300));
+    let a=b*ans;
+    return {text:`${a} ÷ ${b} = ?`, answer:ans, explain:`${a}を${b}個ずつ分けると${ans}です。`};
+  } else if(type===1){
+    const maxN = diff===3?500:200;
+    let a=Math.round((randInt(10,maxN)/10)*10)/10;
+    let b=Math.round((randInt(10,maxN)/10)*10)/10;
+    if(Math.random()<0.5){
+      let ans=Math.round((a+b)*10)/10;
+      return {text:`${a.toFixed(1)} + ${b.toFixed(1)} = ?`, answer:ans, explain:`小数点をそろえて足すと${ans}です。`};
+    } else {
+      if(a<b){const t=a;a=b;b=t;}
+      let ans=Math.round((a-b)*10)/10;
+      return {text:`${a.toFixed(1)} - ${b.toFixed(1)} = ?`, answer:ans, explain:`小数点をそろえて引くと${ans}です。。`};
+    }
+  } else {
+    let den=randInt(3,9), n1=randInt(1,den-1), maxN2=Math.max(1,den-1-n1), n2=randInt(1,maxN2);
+    const r=reduceFraction(n1+n2,den);
+    return {text:`${n1}/${den} + ${n2}/${den} = ? (分数で。れい:2/5)`, answer:`${r.num}/${r.den}`, checkType:"fraction",
+      explain:`分母が同じだから分子だけ足して ${n1+n2}/${den} 、約分すると ${r.num}/${r.den} です。`};
+  }
+}
+function mathGrade5(diff){
+  const type = randInt(0,2);
+  if(type===0){
+    if(Math.random()<0.5){
+      let a=Math.round(randInt(10,diff===3?300:99)/10*10)/10;
+      let b=randInt(2,9);
+      let ans=Math.round(a*b*100)/100;
+      return {text:`${a.toFixed(1)} x ${b} = ?`, answer:ans, explain:`${a}を${b}回足すと${ans}です。`};
+    } else {
+      let b=randInt(2,9);
+      let ansRaw=randInt(10,diff===3?300:99)/10;
+      let a=Math.round(ansRaw*b*10)/10;
+      let ans=Math.round((a/b)*100)/100;
+      return {text:`${a.toFixed(1)} ÷ ${b} = ?`, answer:ans, explain:`${a}を${b}で分けると${ans}です。`};
+    }
+  } else if(type===1){
+    let d1=randInt(2,diff===3?12:6), d2=randInt(2,diff===3?12:6);
+    while(d2===d1){ d2=randInt(2,diff===3?12:6); }
+    let n1=randInt(1,d1-1), n2=randInt(1,d2-1);
+    const commonDen=(d1*d2)/gcd(d1,d2);
+    const num1c=n1*(commonDen/d1), num2c=n2*(commonDen/d2);
+    if(Math.random()<0.5){
+      const r=reduceFraction(num1c+num2c,commonDen);
+      return {text:`${n1}/${d1} + ${n2}/${d2} = ? (分数で)`, answer:`${r.num}/${r.den}`, checkType:"fraction",
+        explain:`分母を${commonDen}にそろえて計算すると ${r.num}/${r.den} です。`};
+    } else {
+      let big=Math.max(num1c,num2c), small=Math.min(num1c,num2c);
+      const r=reduceFraction(big-small,commonDen);
+      const bigOrig = big===num1c? `${n1}/${d1}`:`${n2}/${d2}`;
+      const smallOrig = big===num1c? `${n2}/${d2}`:`${n1}/${d1}`;
+      return {text:`${bigOrig} - ${smallOrig} = ? (分数で)`, answer:`${r.num}/${r.den}`, checkType:"fraction",
+        explain:`分母を${commonDen}にそろえて計算すると ${r.num}/${r.den} です。`};
+    }
+  } else {
+    let base=randInt(2,diff===3?50:20)*10;
+    let percent=randInt(1,9)*10;
+    let ans=base*percent/100;
+    return {text:`${base}の${percent}%は?`, answer:ans, explain:`${base} × ${percent} ÷ 100 で ${ans} です。`};
+  }
+}
+function mathGrade6(diff){
+  const type = randInt(0,2);
+  if(type===0){
+    let n1=randInt(1,diff===3?15:8), d1=randInt(2,9), n2=randInt(1,diff===3?15:8), d2=randInt(2,9);
+    const r=reduceFraction(n1*n2,d1*d2);
+    return {text:`${n1}/${d1} x ${n2}/${d2} = ? (分数で)`, answer:`${r.num}/${r.den}`, checkType:"fraction",
+      explain:`分子どうし、分母どうしを掛けて ${n1*n2}/${d1*d2} 約分すると ${r.num}/${r.den} です。`};
+  } else if(type===1){
+    let n1=randInt(1,diff===3?15:8), d1=randInt(2,9), n2=randInt(1,diff===3?15:8), d2=randInt(2,9);
+    const r=reduceFraction(n1*d2,d1*n2);
+    return {text:`${n1}/${d1} ÷ ${n2}/${d2} = ? (分数で)`, answer:`${r.num}/${r.den}`, checkType:"fraction",
+      explain:`わる数の分数をひっくり返してかけると ${r.num}/${r.den} です。`};
+  } else {
+    let base=randInt(2,diff===3?80:50)*10;
+    let percent=randInt(1,20)*5;
+    let ans=Math.round(base*percent/100*10)/10;
+    return {text:`${base}円の${percent}%はいくら`, answer:ans, explain:`${base} × ${percent} ÷ 100 で ${ans}円 です。`};
+  }
+}
+const MATH_GEN = {1:mathGrade1,2:mathGrade2,3:mathGrade3,4:mathGrade4,5:mathGrade5,6:mathGrade6};
+
+/* ============================================================
+   2. 国語・社会・理科 問題バンク　なんかここからママに呼び出された　内容は忘れずに（）
+   ============================================================ */
+const QBANK = {
+japanese:{
+1:[
+ {q:"「あ」のつぎのひらがなは？",choices:["い","う","え","お"],answer:"い",explain:"「あいうえお」のじゅんばんだよ。"},
+ {q:"「大きい」の反対の意味は？",choices:["小さい","高い","長い","重い"],answer:"小さい",explain:"「大きい」⇔「小さい」ではんたいの意味の言葉だよ。"},
+ {q:"「ねこ」を漢字で書くと？",choices:["猫","犬","鳥","魚"],answer:"猫",explain:"「猫」は「ねこ」とよむ漢字だよ。"},
+ {q:"「わたしは がっこう___ いきます」に入る言葉は？",choices:["へ","を","と","や"],answer:"へ",explain:"場所へ向かうときは「へ」をつかうよ。"},
+ {q:"「木」の読み方は？",choices:["き","いし","つち","みず"],answer:"き",explain:"「木」は「き」とよみます。"}
+],
+2:[
+ {q:"「東」の反対の意味の漢字は？",choices:["西","南","北","中"],answer:"西",explain:"「東西南北」の「東」⇔「西」だよ。"},
+ {q:"「元気」の読み方は？",choices:["げんき","もとき","がんき","げんぎ"],answer:"げんき",explain:"「元気」は「げんき」とよみます。"},
+ {q:"「早い」の反対の言葉は？",choices:["遅い","速い","近い","高い"],answer:"遅い",explain:"「早い」⇔「遅い」がはんたい語だよ。"},
+ {q:"「魚」の画数はいくつ？",choices:["9画","10画","11画","8画"],answer:"11画",explain:"「魚」という漢字は11画で書きます。"},
+ {q:"正しい送りがなはどれ？「あるく」",choices:["歩く","歩るく","歩う","歩か"],answer:"歩く",explain:"「歩く」が正しい送りがなです。"}
+],
+3:[
+ {q:"「あんぜん」を漢字で書くと？",choices:["安全","安然","案全","安善"],answer:"安全",explain:"「安全」は「あんぜん」とよみます。"},
+ {q:"ことわざ「ねこに○○」の○○は？",choices:["小判","大判","金貨","宝石"],answer:"小判",explain:"「ねこに小判」は価値がわからない人に貴重なものをあげてもむだという意味です。"},
+ {q:"「主語」とはどんな言葉？",choices:["だれが・なにが にあたる言葉","どうする にあたる言葉","どんな にあたる言葉","いつ にあたる言葉"],answer:"だれが・なにが にあたる言葉",explain:"文の中で動作をする人やものを表す言葉が主語です。"},
+ {q:"「悲しい」の反対の意味は？",choices:["嬉しい","寂しい","苦しい","怖い"],answer:"嬉しい",explain:"「悲しい」⇔「嬉しい」ははんたいの意味の言葉だよ。"},
+ {q:"「橋」の部首は？",choices:["きへん","さんずい","てへん","くさかんむり"],answer:"きへん",explain:"「橋」は木でできているものなので「きへん」です。"}
+],
+4:[
+ {q:"「一石二鳥」の意味は？",choices:["一つのことで二つの得をすること","一つのことに集中すること","二つのことを同時にすること","鳥を二羽つかまえること"],answer:"一つのことで二つの得をすること",explain:"一つの行動で二つの利益を得るという意味の四字熟語です。"},
+ {q:"「先生がおっしゃる」の「おっしゃる」は何の言葉？",choices:["尊敬語","謙譲語","丁寧語","普通の言葉"],answer:"尊敬語",explain:"相手を敬う「尊敬語」の一つです。"},
+ {q:"「成功」の意味に近いのは？",choices:["ものごとがうまくいくこと","うまくいかないこと","がんばること","あきらめること"],answer:"ものごとがうまくいくこと",explain:"「成功」はものごとがうまくいくことです。"},
+ {q:"「失敗は成功の○」の○に入る言葉は？",choices:["母","父","友","敵"],answer:"母",explain:"「失敗は成功のもと」ということわざです。"},
+ {q:"「速い」と「早い」の違いで正しいのは？",choices:["「速い」はスピード、「早い」は時間が早いこと","どちらも同じ意味","「速い」は時間、「早い」はスピード","使い分けはない"],answer:"「速い」はスピード、「早い」は時間が早いこと",explain:"「速い」は動きの速さ、「早い」は時刻・時期が早いことを表します。"}
+],
+5:[
+ {q:"「推敲」の意味は？",choices:["文章を練り直すこと","文章を読むこと","文章を丸暗記すること","文章を書き写すこと"],answer:"文章を練り直すこと",explain:"「推敲」は文章を何度も見直して良くすることです。"},
+ {q:"謙譲語「まいる」の意味と同じ普通の言葉は？",choices:["行く・来る","食べる","見る","言う"],answer:"行く・来る",explain:"「まいる」は「行く」「来る」の謙譲語です。"},
+ {q:"「温故知新」の意味に近いのは？",choices:["昔のことを学び新しい発見をすること","新しいことだけを学ぶこと","昔のことを忘れること","新しい道具を使うこと"],answer:"昔のことを学び新しい発見をすること",explain:"古いことを研究して新しい知識を得るという意味です。"},
+ {q:"「絶対」の対義語は？",choices:["相対","反対","否定","確実"],answer:"相対",explain:"「絶対」⇔「相対」が対義語のペアです。"},
+ {q:"「彼は走るのが速い」の述語はどれ？",choices:["速い","走る","彼は","のが"],answer:"速い",explain:"文の最後にあり、主語の様子を説明する言葉が述語です。"}
+],
+6:[
+ {q:"「二階から目薬」の意味は？",choices:["効果が期待できないもどかしいこと","とても便利なこと","簡単にできること","早く終わること"],answer:"効果が期待できないもどかしいこと",explain:"遠回しで効果が薄いことのたとえです。"},
+ {q:"「先生が本を読まれる」の「読まれる」の敬語の種類は？",choices:["尊敬語","謙譲語","丁寧語","美化語"],answer:"尊敬語",explain:"「れる・られる」は尊敬語を作る言い方の一つです。"},
+ {q:"「危機一髪」の読み方は？",choices:["ききいっぱつ","ききいちはつ","きけんいっぱつ","ききいつはつ"],answer:"ききいっぱつ",explain:"「危機一髪」は「ききいっぱつ」と読みます。"},
+ {q:"「委ねる」の読み方は？",choices:["ゆだねる","いねる","まかねる","たずねる"],answer:"ゆだねる",explain:"「委ねる」は「ゆだねる」と読み、任せるという意味です。"},
+ {q:"「大器晩成」の意味は？",choices:["優れた人物は成長に時間がかかるということ","すぐに成功すること","道具が壊れやすいこと","晩に器を使うこと"],answer:"優れた人物は成長に時間がかかるということ",explain:"大きな才能は完成するまで時間がかかるという意味の四字熟語です。"}
+]
+},
+social:{
+1:[
+ {q:"信号が赤の時はどうする？",choices:["止まる","渡る","走る","無視する"],answer:"止まる",explain:"赤信号は「止まれ」の合図です。"},
+ {q:"ゴミを捨てる時は？",choices:["ゴミ箱に入れる","道に捨てる","川に捨てる","燃やす"],answer:"ゴミ箱に入れる",explain:"ゴミは決められた場所に捨てましょう。"},
+ {q:"学校に行く前にすることは？",choices:["あいさつをする","寝る","テレビを見続ける","何もしない"],answer:"あいさつをする",explain:"「いってきます」のあいさつは大切なマナーです。"},
+ {q:"お店で物を買う時に払うものは？",choices:["お金","葉っぱ","石","紙"],answer:"お金",explain:"お店では商品と交換にお金を払います。"},
+ {q:"消防車が向かう先は？",choices:["火事の現場","学校","公園","お店"],answer:"火事の現場",explain:"消防車は火事を消すために出動します。"}
+],
+2:[
+ {q:"郵便局の仕事は？",choices:["手紙や荷物を届ける","火を消す","病気を治す","ご飯を作る"],answer:"手紙や荷物を届ける",explain:"郵便局は手紙や荷物を配達する仕事をしています。"},
+ {q:"スーパーマーケットにないものは？",choices:["野菜","パトカー","魚","パン"],answer:"パトカー",explain:"パトカーは警察署にあります。"},
+ {q:"町の地図の「記号」の役割は？",choices:["場所や建物をわかりやすく表す","絵をかざる","色をつける","文字を隠す"],answer:"場所や建物をわかりやすく表す",explain:"地図記号は建物などをかんたんに表すマークです。"},
+ {q:"図書館でしてはいけないことは？",choices:["大声で騒ぐ","本を読む","静かにする","本を借りる"],answer:"大声で騒ぐ",explain:"図書館ではみんなが静かに過ごせるようにしましょう。"},
+ {q:"お祭りは主に何をお祝いする行事？",choices:["地域の伝統や季節","誕生日だけ","学校の入学","会社の設立"],answer:"地域の伝統や季節",explain:"お祭りは地域の伝統や季節の変わり目を祝う行事です。"}
+],
+3:[
+ {q:"地図記号で「文」はどんな施設？",choices:["学校","病院","郵便局","神社"],answer:"学校",explain:"「文」は文の字から学校を表す地図記号です。"},
+ {q:"消防署の仕事は？",choices:["火事や事故から人を守る","郵便を届ける","買い物をする","授業をする"],answer:"火事や事故から人を守る",explain:"消防署は火事や救急の対応をしています。"},
+ {q:"地域の安全を守る仕事はどれ？",choices:["警察官","パン屋さん","画家","音楽家"],answer:"警察官",explain:"警察官は事件や事故から地域を守る仕事です。"},
+ {q:"方位を表す言葉でないのはどれ？",choices:["東","あお","西","南"],answer:"あお",explain:"「あお」は色の名前です。方位は東西南北です。"},
+ {q:"スーパーマーケットが工夫していることは？",choices:["新鮮な商品を並べる","商品を隠す","値段を高くする","お客を減らす"],answer:"新鮮な商品を並べる",explain:"お店はお客さんに来てもらうため新鮮さや安さを工夫しています。"}
+],
+4:[
+ {q:"都道府県の数はいくつ？",choices:["47","45","50","43"],answer:"47",explain:"日本には47の都道府県があります。"},
+ {q:"大阪府の府庁所在地は？",choices:["大阪市","神戸市","京都市","堺市"],answer:"大阪市",explain:"大阪府の府庁所在地は大阪市です。"},
+ {q:"リサイクルの意味は？",choices:["再び資源として利用すること","ごみを燃やすこと","ごみを埋めること","ごみを増やすこと"],answer:"再び資源として利用すること",explain:"リサイクルは使い終わったものを資源として再利用することです。"},
+ {q:"水はどこから家庭に届く？",choices:["浄水場","消防署","学校","銀行"],answer:"浄水場",explain:"川や湖の水を浄水場できれいにして家庭に届けます。"},
+ {q:"47都道府県で一番人口が多いのは？",choices:["東京都","大阪府","北海道","沖縄県"],answer:"東京都",explain:"東京都は日本で一番人口が多い都道府県です。"}
+],
+5:[
+ {q:"日本で一番広い都道府県は？",choices:["北海道","岩手県","福島県","長野県"],answer:"北海道",explain:"北海道は面積が日本で一番広い都道府県です。"},
+ {q:"米作りが盛んな地方は？",choices:["東北地方","九州地方","関東地方","四国地方"],answer:"東北地方",explain:"東北地方は稲作が盛んで日本の米どころとして有名です。"},
+ {q:"日本の主な工業地帯でないのは？",choices:["中京工業地帯","阪神工業地帯","京浜工業地帯","モンゴル工業地帯"],answer:"モンゴル工業地帯",explain:"モンゴルは他の国です。日本には中京・阪神・京浜などの工業地帯があります。"},
+ {q:"貿易で「輸入」の意味は？",choices:["外国から品物を買うこと","外国へ品物を売ること","国内で品物を作ること","品物を捨てること"],answer:"外国から品物を買うこと",explain:"輸入は外国から品物を買い入れることです。"},
+ {q:"日本の国土のうち山地の割合はおよそ？",choices:["約7割","約3割","約5割","約1割"],answer:"約7割",explain:"日本の国土のおよそ7割は山地です。"}
+],
+6:[
+ {q:"日本国憲法の三大原則にふくまれないのは？",choices:["天皇主権","国民主権","基本的人権の尊重","平和主義"],answer:"天皇主権",explain:"三大原則は国民主権・基本的人権の尊重・平和主義です。"},
+ {q:"江戸幕府を開いたのは誰？",choices:["徳川家康","織田信長","豊臣秀吉","源頼朝"],answer:"徳川家康",explain:"徳川家康が1603年に江戸幕府を開きました。"},
+ {q:"聖徳太子が定めたとされるものは？",choices:["十七条の憲法","大日本帝国憲法","御成敗式目","武家諸法度"],answer:"十七条の憲法",explain:"聖徳太子は十七条の憲法を定めたとされています。"},
+ {q:"選挙で投票できる年齢は何歳から？",choices:["18歳","20歳","15歳","25歳"],answer:"18歳",explain:"現在の日本では18歳から選挙権があります。"},
+ {q:"第二次世界大戦が終わったのは何年？",choices:["1945年","1941年","1950年","1937年"],answer:"1945年",explain:"第二次世界大戦は1945年に終結しました。"}
+]
+},
+science:{
+1:[
+ {q:"チョウはどこから生まれる？",choices:["卵","種","石","土"],answer:"卵",explain:"チョウは卵から幼虫になり、やがて成虫になります。"},
+ {q:"植物が育つために必要でないものは？",choices:["テレビ","水","光","土"],answer:"テレビ",explain:"植物の成長には水・光・土などが必要で、テレビは関係ありません。"},
+ {q:"朝、太陽はどちらから昇る？",choices:["東","西","南","北"],answer:"東",explain:"太陽は東から昇り西に沈みます。"},
+ {q:"冬に多く見られる天気は？",choices:["雪","台風","梅雨","猛暑"],answer:"雪",explain:"冬は気温が下がり雪が降る地域が多いです。"},
+ {q:"アリの体の部分の数は？",choices:["3つ","2つ","4つ","5つ"],answer:"3つ",explain:"昆虫の体は頭・胸・腹の3つに分かれています。"}
+],
+2:[
+ {q:"種から最初に出てくる部分は？",choices:["根","花","実","葉っぱの模様"],answer:"根",explain:"種は発芽するとまず根が出てきます。"},
+ {q:"磁石にくっつくものは？",choices:["鉄","木","紙","ガラス"],answer:"鉄",explain:"磁石は鉄などの金属にくっつく性質があります。"},
+ {q:"影ができる理由は？",choices:["光がさえぎられるから","風が吹くから","温度が低いから","音がするから"],answer:"光がさえぎられるから",explain:"物に光があたると、反対側に影ができます。"},
+ {q:"水が氷になる時の温度は？",choices:["0度","100度","50度","-50度"],answer:"0度",explain:"水はセ氏0度で氷になります。"},
+ {q:"セミの鳴き声が聞こえる季節は？",choices:["夏","冬","春","秋"],answer:"夏",explain:"セミは主に夏に鳴きます。"}
+],
+3:[
+ {q:"昆虫の足の数は？",choices:["6本","8本","4本","10本"],answer:"6本",explain:"昆虫の足は6本あります。"},
+ {q:"ホウセンカが育つ順番で最初は？",choices:["種をまく","花がさく","実ができる","葉が茂る"],answer:"種をまく",explain:"植物はまず種をまくところから育ちます。"},
+ {q:"太陽の光を集めると起こることは？",choices:["熱くなる","冷たくなる","音がする","匂いがする"],answer:"熱くなる",explain:"光を集めると温度が上がり熱くなります。"},
+ {q:"磁石のN極とS極、同じ極同士は？",choices:["反発しあう","引き合う","何も起きない","くっつく"],answer:"反発しあう",explain:"同じ極同士は反発し、違う極同士は引き合います。"},
+ {q:"ものの重さをはかる道具は？",choices:["はかり","ものさし","虫めがね","温度計"],answer:"はかり",explain:"重さをはかる時は「はかり」を使います。"}
+],
+4:[
+ {q:"電気を通すものはどれ？",choices:["銅線","ゴム","木","プラスチック"],answer:"銅線",explain:"金属である銅は電気を通す性質があります。"},
+ {q:"月の形が変わって見える理由は？",choices:["太陽の光の当たり方が変わるから","月が壊れるから","雲がかかるから","地球が動かないから"],answer:"太陽の光の当たり方が変わるから",explain:"月と太陽と地球の位置関係で見える形が変わります。"},
+ {q:"水は温度が上がるとどうなる？",choices:["体積が増える","消える","重くなる","色が変わる"],answer:"体積が増える",explain:"水は温度が上がると膨張(体積が増える)します。"},
+ {q:"星座早見盤を使う目的は？",choices:["星の位置を調べる","天気を調べる","気温を測る","月の満ち欠けを調べる"],answer:"星の位置を調べる",explain:"星座早見盤は特定の時刻・日付の星の位置を調べる道具です。"},
+ {q:"とじこめた空気を押すとどうなる？",choices:["体積が小さくなる","色が変わる","音がしなくなる","重さが増える"],answer:"体積が小さくなる",explain:"閉じ込めた空気は押すと体積が縮みます。"}
+],
+5:[
+ {q:"種子が発芽するために必要ないものは？",choices:["肥料","水","空気","適当な温度"],answer:"肥料",explain:"発芽には水・空気・適当な温度が必要で、肥料は発芽そのものには必須ではありません。"},
+ {q:"メダカの卵が育つ場所は？",choices:["水中の水草","土の中","木の上","空気中"],answer:"水中の水草",explain:"メダカは水草に卵を産み付けます。"},
+ {q:"台風が多く発生する季節は？",choices:["夏から秋","冬","春","一年中同じ"],answer:"夏から秋",explain:"台風は主に夏から秋にかけて多く発生します。"},
+ {q:"ふりこの1往復する時間を変えるものは？",choices:["ふりこの長さ","おもりの色","ひもの色","天気"],answer:"ふりこの長さ",explain:"ふりこの周期はふりこの長さによって変わります。"},
+ {q:"雲ができる理由は？",choices:["水蒸気が冷えて水や氷になるから","土が舞い上がるから","風が強いから","太陽が近いから"],answer:"水蒸気が冷えて水や氷になるから",explain:"空気中の水蒸気が上空で冷やされて雲ができます。"}
+],
+6:[
+ {q:"人が吸う空気に多く含まれる気体は？",choices:["窒素","酸素","二酸化炭素","水素"],answer:"窒素",explain:"空気の約78%は窒素です(酸素は約21%)。"},
+ {q:"てこで力点を支点から遠ざけると？",choices:["小さな力で持ち上げられる","大きな力が必要になる","何も変わらない","支点が動く"],answer:"小さな力で持ち上げられる",explain:"力点を支点から遠ざけると、てこの原理で小さな力で持ち上げられます。"},
+ {q:"塩酸に鉄を入れるとどうなる？",choices:["とけて気体が発生する","何も起こらない","鉄が増える","色が消えるだけ"],answer:"とけて気体が発生する",explain:"塩酸に鉄を入れると鉄がとけて水素が発生します。"},
+ {q:"満月の次に近い月の形は？",choices:["新月に向かって欠けていく","すぐにまた満月になる","形は変わらない","三日月からすぐ満月になる"],answer:"新月に向かって欠けていく",explain:"満月の後は少しずつ欠けていき、新月に向かいます。"},
+ {q:"心臓の主な役割は？",choices:["血液を全身に送る","食べ物を消化する","呼吸をする","骨を動かす"],answer:"血液を全身に送る",explain:"心臓はポンプのように血液を全身に送り出す役割をしています。"}
+]
+}
+};
+
+const UNIT_NAMES = {
+math:{1:"たし算・ひき算",2:"筆算・九九",3:"筆算・わり算",4:"わり算・小数・分数",5:"小数・分数・割合",6:"分数・割合の応用"},
+japanese:{1:"ひらがな・言葉",2:"漢字・反対語",3:"漢字・ことわざ",4:"四字熟語・敬語",5:"敬語・文法",6:"敬語・ことわざ・漢字"},
+social:{1:"くらしとルール",2:"まちの仕事",3:"地図記号・仕事",4:"都道府県",5:"国土・産業",6:"歴史・政治"},
+science:{1:"生き物・季節",2:"種・磁石",3:"昆虫・植物",4:"電気・月",5:"天気・発芽",6:"人体・水溶液"}
+};
+
+/* ============================================================
+   3. 街づくり: 建物データ
+   ============================================================ */
+const BUILDINGS = {
+house:[
+ {name:"木の家",cost:200,color:"#c98a4b"},
+ {name:"レンガの家",cost:400,color:"#b5533c"},
+ {name:"二階建ての家",cost:700,color:"#d98b3f"},
+ {name:"庭付きの家",cost:1100,color:"#6fbf73"},
+ {name:"カラフルハウス",cost:1600,color:"#e26fa0"},
+ {name:"おしゃれな家",cost:2200,color:"#7f8fd1"},
+ {name:"大きな家",cost:3000,color:"#c9793f"},
+ {name:"タワーマンション",cost:4000,color:"#8894a3"},
+ {name:"別荘",cost:5500,color:"#5fae8e"},
+ {name:"豪邸",cost:8000,color:"#d4af37"}
+],
+public:[
+ {name:"小さな公園",cost:300,color:"#68b26a"},
+ {name:"郵便局",cost:600,color:"#d84b4b"},
+ {name:"図書館",cost:1000,color:"#8a63d2"},
+ {name:"消防署",cost:1500,color:"#e34a4a"},
+ {name:"警察署",cost:1500,color:"#4a7fd8"},
+ {name:"小学校",cost:2500,color:"#e0a233"},
+ {name:"病院",cost:3500,color:"#4bb3b3"},
+ {name:"駅",cost:5000,color:"#7a7a7a"},
+ {name:"市役所",cost:7000,color:"#5a8fd0"},
+ {name:"遊園地",cost:10000,color:"#e0559a"}
+],
+factory:[
+ {name:"小さな工場",cost:500,income:1,color:"#9a9a9a"},
+ {name:"パン工場",cost:900,income:2,color:"#d4a24a"},
+ {name:"木材工場",cost:1400,income:3,color:"#8a5a3c"},
+ {name:"おもちゃ工場",cost:2000,income:4,color:"#4fa8d8"},
+ {name:"食品工場",cost:2800,income:6,color:"#7bbf6a"},
+ {name:"鉄工所",cost:3800,income:8,color:"#707070"},
+ {name:"化学工場",cost:5000,income:11,color:"#9a5ec9"},
+ {name:"自動車工場",cost:7000,income:15,color:"#3f6fbf"},
+ {name:"IT工場",cost:9500,income:20,color:"#2fb0a0"},
+ {name:"巨大工場",cost:13000,income:28,color:"#c94f4f"}
+]
+};
+const CAT_LABELS = {house:"家",public:"公共しせつ",factory:"こうじょう"};
+
+/* ============================================================
+   4. セーブデータ管理 (localStorage)
+   ============================================================ */
+const SAVE_KEY = "study_town_save_v1";
+const STARTING_MONEY = 20000;
+
+function defaultSave(){
+  return {
+    money: STARTING_MONEY,
+    totalEarned: 0,
+    owned: {house:[0,0,0,0,0,0,0,0,0,0], public:[0,0,0,0,0,0,0,0,0,0], factory:[0,0,0,0,0,0,0,0,0,0]},
+    lastUpdate: Date.now()
+  };
+}
+let SAVE = loadSave();
+
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return defaultSave();
+    const parsed = JSON.parse(raw);
+    if(!parsed.owned) return defaultSave();
+    return parsed;
+  }catch(e){
+    return defaultSave();
+  }
+}
+function persistSave(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
+  }catch(e){}
+}
+
+function totalIncomePerSec(){
+  let total = 0;
+  BUILDINGS.factory.forEach((b, i) => {
+    total += (SAVE.owned.factory[i]||0) * b.income;
+  });
+  return total;
+}
+
+function applyOfflineIncome(){
+  const now = Date.now();
+  const elapsedSec = Math.min((now - (SAVE.lastUpdate||now)) / 1000, 6*3600); // 最大6時間ぶん
+  const rate = totalIncomePerSec();
+  if(elapsedSec > 3 && rate > 0){
+    const gained = Math.floor(elapsedSec * rate);
+    if(gained > 0){
+      SAVE.money += gained;
+      SAVE.totalEarned += gained;
+      showToast(`るすの間に こうじょうが ${gained}円 かせいでくれたよ！`);
+    }
+  }
+  SAVE.lastUpdate = now;
+  persistSave();
+}
+
+/* ============================================================
+   5. 共通UI: お金表示・トースト
+   ============================================================ */
+const moneyDisplay = document.getElementById('moneyDisplay');
+const incomeNote = document.getElementById('incomeNote');
+
+function updateMoneyDisplay(bump){
+  moneyDisplay.textContent = `お金: ${Math.floor(SAVE.money)}円`;
+  const rate = totalIncomePerSec();
+  incomeNote.textContent = rate>0 ? `こうじょう収入: ${rate}円/びょう` : '';
+  if(bump){
+    moneyDisplay.classList.remove('bump');
+    void moneyDisplay.offsetWidth;
+    moneyDisplay.classList.add('bump');
+  }
+  if(!document.getElementById('townSection').classList.contains('hidden')){
+    renderTownStats();
+    renderBuildingGrid();
+  }
+}
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+/* ============================================================
+   6. タブ切り替え
+   ============================================================ */
+const tabStudyBtn = document.getElementById('tabStudyBtn');
+const tabTownBtn = document.getElementById('tabTownBtn');
+const studySetup = document.getElementById('studySetup');
+const problemCard = document.getElementById('problemCard');
+const finishCard = document.getElementById('finishCard');
+const townSection = document.getElementById('townSection');
+
+function showStudyTab(){
+  tabStudyBtn.classList.add('active');
+  tabTownBtn.classList.remove('active');
+  townSection.classList.add('hidden');
+  studySetup.classList.remove('hidden');
+  problemCard.classList.add('hidden');
+  finishCard.classList.add('hidden');
+}
+function showTownTab(){
+  tabTownBtn.classList.add('active');
+  tabStudyBtn.classList.remove('active');
+  studySetup.classList.add('hidden');
+  problemCard.classList.add('hidden');
+  finishCard.classList.add('hidden');
+  townSection.classList.remove('hidden');
+  renderTown();
+}
+tabStudyBtn.addEventListener('click', showStudyTab);
+tabTownBtn.addEventListener('click', showTownTab);
+document.getElementById('goTownBtn').addEventListener('click', showTownTab);
+
+/* ============================================================
+   7. べんきょうセットアップ
+   ============================================================ */
+let selectedSubject = 'math';
+let selectedGrade = 1;
+let selectedDiff = 2; // 1,2,3
+const SUBJECT_LABELS = {math:"算数", japanese:"国語", social:"社会", science:"理科"};
+const DIFF_LABELS = {1:"かんたん", 2:"ふつう", 3:"むずかしい"};
+
+const subjectSelect = document.getElementById('subjectSelect');
+const gradeSelect = document.getElementById('gradeSelect');
+const diffSelect = document.getElementById('diffSelect');
+const unitList = document.getElementById('unitList');
+const genBtn = document.getElementById('genBtn');
+
+function renderSubjectButtons(){
+  subjectSelect.innerHTML = '';
+  Object.keys(SUBJECT_LABELS).forEach(key => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn' + (key===selectedSubject?' selected':'');
+    btn.textContent = SUBJECT_LABELS[key];
+    btn.addEventListener('click', () => { selectedSubject = key; renderSubjectButtons(); renderUnitInfo(); });
+    subjectSelect.appendChild(btn);
+  });
+}
+function renderGradeButtons(){
+  gradeSelect.innerHTML = '';
+  for(let g=1; g<=6; g++){
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn' + (g===selectedGrade?' selected':'');
+    btn.textContent = g + '年生';
+    btn.addEventListener('click', () => { selectedGrade = g; renderGradeButtons(); renderUnitInfo(); });
+    gradeSelect.appendChild(btn);
+  }
+}
+function renderDiffButtons(){
+  diffSelect.innerHTML = '';
+  [1,2,3].forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn diff-btn d' + d + (d===selectedDiff?' selected':'');
+    btn.textContent = DIFF_LABELS[d];
+    btn.addEventListener('click', () => { selectedDiff = d; renderDiffButtons(); });
+    diffSelect.appendChild(btn);
+  });
+}
+function renderUnitInfo(){
+  const unitName = UNIT_NAMES[selectedSubject][selectedGrade];
+  unitList.innerHTML = `<strong>はんい:</strong> ${unitName}`;
+}
+
+/* ============================================================
+   8. クイズ本体
+   ============================================================ */
+let currentProblems = [];
+let currentIndex = 0;
+let correctCount = 0;
+let sessionEarned = 0;
+const TOTAL_QUESTIONS = 10;
+
+const progressLine = document.getElementById('progressLine');
+const progressBar = document.getElementById('progressBar');
+const problemWrap = document.getElementById('problemWrap');
+const problemText = document.getElementById('problemText');
+const textAnswerRow = document.getElementById('textAnswerRow');
+const answerInput = document.getElementById('answerInput');
+const mcGrid = document.getElementById('mcGrid');
+const coinFloat = document.getElementById('coinFloat');
+const feedback = document.getElementById('feedback');
+const explainBox = document.getElementById('explainBox');
+const checkBtn = document.getElementById('checkBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+const finalResult = document.getElementById('finalResult');
+const finalScore = document.getElementById('finalScore');
+const finalEarn = document.getElementById('finalEarn');
+const retryBtn = document.getElementById('retryBtn');
+
+function rewardForAnswer(){
+  return selectedDiff*20 + selectedGrade*10;
+}
+
+function buildProblemPool(){
+  const pool = [];
+  if(selectedSubject === 'math'){
+    const gen = MATH_GEN[selectedGrade];
+    for(let i=0;i<TOTAL_QUESTIONS;i++){
+      const p = gen(selectedDiff);
+      pool.push({ mode:'text', text:p.text, answer:p.answer, checkType:p.checkType||'number', explain:p.explain });
+    }
+  } else {
+    const bank = QBANK[selectedSubject][selectedGrade];
+    for(let i=0;i<TOTAL_QUESTIONS;i++){
+      const q = bank[randInt(0, bank.length-1)];
+      if(selectedDiff === 3){
+        pool.push({ mode:'text', text:q.q, answer:q.answer, checkType:'string', explain:q.explain });
+      } else {
+        let choices;
+        if(selectedDiff === 1){
+          const wrongs = shuffle(q.choices.filter(c => c!==q.answer)).slice(0,1);
+          choices = shuffle([q.answer, ...wrongs]);
+        } else {
+          choices = shuffle(q.choices);
+        }
+        pool.push({ mode:'mc', text:q.q, choices:choices, answer:q.answer, explain:q.explain });
+      }
+    }
+  }
+  return pool;
+}
+
+function startQuiz(){
+  currentProblems = buildProblemPool();
+  currentIndex = 0;
+  correctCount = 0;
+  sessionEarned = 0;
+
+  studySetup.classList.add('hidden');
+  finishCard.classList.add('hidden');
+  problemCard.classList.remove('hidden');
+
+  showProblem();
+  problemCard.scrollIntoView({behavior:'smooth'});
+}
+
+function showProblem(){
+  const p = currentProblems[currentIndex];
+  progressLine.textContent = `${currentIndex+1} / ${TOTAL_QUESTIONS} もんめ  (${SUBJECT_LABELS[selectedSubject]}・${selectedGrade}年・${DIFF_LABELS[selectedDiff]})`;
+  progressBar.style.width = (currentIndex / TOTAL_QUESTIONS * 100) + "%";
+
+  problemWrap.classList.remove('problem-wrap');
+  void problemWrap.offsetWidth;
+  problemWrap.classList.add('problem-wrap');
+
+  problemText.textContent = p.text;
+  feedback.textContent = '';
+  feedback.className = 'feedback';
+  explainBox.classList.add('hidden');
+  coinFloat.innerHTML = '';
+  checkBtn.classList.remove('hidden');
+  checkBtn.disabled = false;
+  nextBtn.classList.add('hidden');
+
+  if(p.mode === 'mc'){
+    textAnswerRow.classList.add('hidden');
+    mcGrid.classList.remove('hidden');
+    mcGrid.innerHTML = '';
+    p.choices.forEach(choice => {
+      const b = document.createElement('button');
+      b.className = 'mc-btn';
+      b.textContent = choice;
+      b.addEventListener('click', () => selectMcChoice(b, choice));
+      mcGrid.appendChild(b);
+    });
+    checkBtn.classList.add('hidden'); // MCは選択で即判定
+  } else {
+    mcGrid.classList.add('hidden');
+    textAnswerRow.classList.remove('hidden');
+    answerInput.value = '';
+    answerInput.classList.remove('correct','wrong');
+    answerInput.disabled = false;
+    setTimeout(() => answerInput.focus(), 50);
+  }
+}
+
+function normalizeStr(str){ return String(str).replace(/\s/g,''); }
+
+function checkTextAnswer(userInput, p){
+  const userStr = normalizeStr(userInput).trim();
+  if(p.checkType === 'fraction'){
+    const parts = userStr.split('/');
+    if(parts.length !== 2) return false;
+    const uNum = parseInt(parts[0],10), uDen = parseInt(parts[1],10);
+    if(isNaN(uNum) || isNaN(uDen) || uDen===0) return false;
+    const uR = reduceFraction(uNum,uDen);
+    const cParts = String(p.answer).split('/').map(Number);
+    return uR.num===cParts[0] && uR.den===cParts[1];
+  } else if(p.checkType === 'string'){
+    return userStr === normalizeStr(p.answer);
+  } else {
+    const uNum = parseFloat(userStr);
+    if(isNaN(uNum)) return false;
+    return Math.abs(uNum - p.answer) < 0.001;
+  }
+}
+
+function grantReward(isCorrect){
+  if(!isCorrect) return;
+  const amount = rewardForAnswer();
+  SAVE.money += amount;
+  SAVE.totalEarned += amount;
+  sessionEarned += amount;
+  persistSave();
+  updateMoneyDisplay(true);
+  const coin = document.createElement('div');
+  coin.className = 'coin-pop';
+  coin.textContent = `+${amount}円`;
+  coinFloat.appendChild(coin);
+  setTimeout(() => coin.remove(), 1000);
+}
+
+function selectMcChoice(btnEl, choice){
+  const p = currentProblems[currentIndex];
+  const isCorrect = (choice === p.answer);
+  Array.from(mcGrid.children).forEach(b => {
+    b.disabled = true;
+    if(b.textContent === p.answer) b.classList.add('correct');
+  });
+  if(!isCorrect){ btnEl.classList.add('wrong'); }
+
+  if(isCorrect){
+    feedback.textContent = 'せいかい';
+    feedback.classList.add('feedback-good');
+    correctCount++;
+  } else {
+    feedback.textContent = 'ざんねん';
+    feedback.classList.add('feedback-bad');
+  }
+  explainBox.classList.remove('hidden');
+  explainBox.innerHTML = `<b>かいせつ：</b>${p.explain}`;
+  grantReward(isCorrect);
+  progressBar.style.width = ((currentIndex+1) / TOTAL_QUESTIONS * 100) + "%";
+  nextBtn.classList.remove('hidden');
+}
+
+function handleCheck(){
+  const p = currentProblems[currentIndex];
+  const isCorrect = checkTextAnswer(answerInput.value, p);
+  answerInput.disabled = true;
+
+  if(isCorrect){
+    answerInput.classList.add('correct');
+    feedback.textContent = 'せいかい';
+    feedback.classList.add('feedback-good');
+    correctCount++;
+  } else {
+    answerInput.classList.add('wrong');
+    feedback.textContent = 'ざんねん';
+    feedback.classList.add('feedback-bad');
+  }
+  explainBox.classList.remove('hidden');
+  explainBox.innerHTML = `<b>かいせつ：</b>${p.explain}（正解: ${p.answer}）`;
+  grantReward(isCorrect);
+
+  checkBtn.classList.add('hidden');
+  nextBtn.classList.remove('hidden');
+  progressBar.style.width = ((currentIndex+1) / TOTAL_QUESTIONS * 100) + "%";
+}
+
+function handleNext(){
+  currentIndex++;
+  if(currentIndex >= TOTAL_QUESTIONS){
+    showFinish();
+  } else {
+    showProblem();
+  }
+}
+
+function showFinish(){
+  problemCard.classList.add('hidden');
+  finishCard.classList.remove('hidden');
+
+  if(correctCount === TOTAL_QUESTIONS){
+    finalResult.textContent = 'ぜんもんせいかい！';
+    finalResult.className = 'result-box result-good';
+  } else if(correctCount >= TOTAL_QUESTIONS*0.6){
+    finalResult.textContent = 'よくできました';
+    finalResult.className = 'result-box result-good';
+  } else {
+    finalResult.textContent = 'もう一度チャレンジしよう';
+    finalResult.className = 'result-box result-bad';
+  }
+  finalScore.textContent = `${correctCount} / ${TOTAL_QUESTIONS} もんせいかい`;
+  finalEarn.textContent = `今回かせいだお金: ${sessionEarned}円`;
+  finishCard.scrollIntoView({behavior:'smooth'});
+}
+
+genBtn.addEventListener('click', startQuiz);
+checkBtn.addEventListener('click', handleCheck);
+nextBtn.addEventListener('click', handleNext);
+retryBtn.addEventListener('click', () => {
+  finishCard.classList.add('hidden');
+  studySetup.classList.remove('hidden');
+  studySetup.scrollIntoView({behavior:'smooth'});
+});
+answerInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    if(!checkBtn.classList.contains('hidden') && !checkBtn.disabled){
+      handleCheck();
+    } else if(!nextBtn.classList.contains('hidden')){
+      handleNext();
+    }
+  }
+});
+
+/* ============================================================
+   9. まち画面
+   ============================================================ */
+let currentTownCat = 'house';
+const townCatTabs = document.getElementById('townCatTabs');
+const buildingGrid = document.getElementById('buildingGrid');
+const townView = document.getElementById('townView');
+const townMoney = document.getElementById('townMoney');
+const townIncome = document.getElementById('townIncome');
+const townTotal = document.getElementById('townTotal');
+
+function renderTownCatTabs(){
+  townCatTabs.innerHTML = '';
+  Object.keys(CAT_LABELS).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = cat===currentTownCat ? 'active' : '';
+    btn.textContent = CAT_LABELS[cat];
+    btn.addEventListener('click', () => { currentTownCat = cat; renderTownCatTabs(); renderBuildingGrid(); });
+    townCatTabs.appendChild(btn);
+  });
+}
+
+function makeIconEl(color, cat){
+  const wrap = document.createElement('div');
+  wrap.className = 'b-icon';
+  const body = document.createElement('div');
+  body.className = 'body';
+  body.style.background = color;
+  if(cat==='factory'){
+    body.style.height = '34px';
+    const chim = document.createElement('div');
+    chim.className = 'chimney';
+    wrap.appendChild(chim);
+  } else if(cat==='public'){
+    body.style.height = '38px';
+  } else {
+    body.style.height = '30px';
+    const roof = document.createElement('div');
+    roof.className = 'roof';
+    roof.style.borderLeft = '28px solid transparent';
+    roof.style.borderRight = '28px solid transparent';
+    roof.style.borderBottom = '18px solid ' + color;
+    wrap.appendChild(roof);
+  }
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.style.width='10px'; win.style.height='10px';
+  win.style.left='22px'; win.style.bottom='8px';
+  body.appendChild(win);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function isUnlocked(cat, idx){
+  if(idx === 0) return true;
+  return (SAVE.owned[cat][idx-1]||0) > 0;
+}
+
+function renderBuildingGrid(){
+  buildingGrid.innerHTML = '';
+  const list = BUILDINGS[currentTownCat];
+  list.forEach((b, idx) => {
+    const unlocked = isUnlocked(currentTownCat, idx);
+    const owned = SAVE.owned[currentTownCat][idx] || 0;
+    const affordable = unlocked && SAVE.money >= b.cost;
+
+    const card = document.createElement('div');
+    card.className = 'building-card' + (!unlocked?' locked':'') + (affordable?' affordable':'');
+
+    card.appendChild(makeIconEl(b.color, currentTownCat));
+
+    const name = document.createElement('div');
+    name.className = 'b-name';
+    name.textContent = b.name;
+    card.appendChild(name);
+
+    const cost = document.createElement('div');
+    cost.className = 'b-cost';
+    cost.textContent = `${b.cost}円`;
+    card.appendChild(cost);
+
+    if(currentTownCat === 'factory'){
+      const inc = document.createElement('div');
+      inc.className = 'b-income';
+      inc.textContent = `+${b.income}円/s`;
+      card.appendChild(inc);
+    }
+
+    const ownedEl = document.createElement('div');
+    ownedEl.className = 'b-owned';
+    ownedEl.textContent = `持っている数: ${owned}`;
+    card.appendChild(ownedEl);
+
+    if(!unlocked){
+      const lockNote = document.createElement('div');
+      lockNote.className = 'b-lock-note';
+      lockNote.textContent = `前の建物を建てるとアンロック`;
+      card.appendChild(lockNote);
+    }
+
+    const buyBtn = document.createElement('button');
+    buyBtn.className = 'buy-btn';
+    buyBtn.textContent = '建てる';
+    buyBtn.disabled = !affordable;
+    buyBtn.addEventListener('click', () => buyBuilding(currentTownCat, idx, buyBtn));
+    card.appendChild(buyBtn);
+
+    buildingGrid.appendChild(card);
+  });
+}
+
+function buyBuilding(cat, idx, btnEl){
+  const b = BUILDINGS[cat][idx];
+  if(SAVE.money < b.cost) return;
+  SAVE.money -= b.cost;
+  SAVE.owned[cat][idx] = (SAVE.owned[cat][idx]||0) + 1;
+  persistSave();
+  btnEl.classList.add('just-bought');
+  updateMoneyDisplay(true);
+  renderTownView();
+  renderBuildingGrid();
+  showToast(`${b.name} をたてたよ！`);
+}
+
+function renderTownView(){
+  townView.innerHTML = '';
+  Object.keys(BUILDINGS).forEach(cat => {
+    BUILDINGS[cat].forEach((b, idx) => {
+      const n = SAVE.owned[cat][idx] || 0;
+      for(let i=0;i<n;i++){
+        const mini = document.createElement('div');
+        mini.className = 'mini-icon';
+        mini.style.background = b.color;
+        townView.appendChild(mini);
+      }
+    });
+  });
+  if(townView.children.length === 0){
+    townView.innerHTML = '<div style="color:#999;font-size:0.85rem;">まだ建物がありません。たてて街を発展させよう！</div>';
+  }
+}
+
+function renderTownStats(){
+  townMoney.textContent = `${Math.floor(SAVE.money)}円`;
+  townIncome.textContent = `${totalIncomePerSec()}円/びょう`;
+  townTotal.textContent = `${Math.floor(SAVE.totalEarned)}円`;
+}
+
+function renderTown(){
+  renderTownCatTabs();
+  renderBuildingGrid();
+  renderTownView();
+  renderTownStats();
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  const ok = window.confirm('本当にセーブデータをリセットしますか？お金や建物がすべてなくなります。');
+  if(ok){
+    SAVE = defaultSave();
+    persistSave();
+    updateMoneyDisplay(true);
+    renderTown();
+    showToast('セーブデータをリセットしました');
+  }
+});
+
+/* ============================================================
+   10. 自動収入(工場)のループ
+   ============================================================ */
+setInterval(() => {
+  const rate = totalIncomePerSec();
+  if(rate > 0){
+    SAVE.money += rate;
+    SAVE.totalEarned += rate;
+    SAVE.lastUpdate = Date.now();
+    updateMoneyDisplay(false);
+  }
+}, 1000);
+
+setInterval(() => { persistSave(); }, 5000);
+window.addEventListener('beforeunload', () => { SAVE.lastUpdate = Date.now(); persistSave(); });
+
+/* ============================================================
+   11. 初期化
+   ============================================================ */
+applyOfflineIncome();
+renderSubjectButtons();
+renderGradeButtons();
+renderDiffButtons();
+renderUnitInfo();
+updateMoneyDisplay(false);
+</script>
+
+</body>
+</html>
+
+
